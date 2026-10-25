@@ -1,40 +1,52 @@
 name: Ultra Launcher desde ZIP
+
 on:
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+
       - name: Extraer proyecto
         run: |
           unzip -q ULTRA_LAUNCHER_STUDIO_PRO_2.0_FINAL.zip -d extracted
           test -f extracted/UltraLauncherStudioPro2/settings.gradle.kts
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - uses:    - uses: android-actions/setup-android@v3
-     with:
-       packages: 'platform-tools'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
+
       - name: Instalar SDK
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
       - uses: gradle/actions/setup-gradle@v4
+
       - name: Revisar estructura
         working-directory: extracted/UltraLauncherStudioPro2
         run: python3 -m unittest discover -s tests -v
+
       - name: Compilar y revisar Android
         working-directory: extracted/UltraLauncherStudioPro2
         run: bash ./gradlew :app:assembleDebug :app:lintDebug --stacktrace --no-daemon
+
       - uses: actions/upload-artifact@v4
         with:
           name: Ultra-Launcher-Studio-Pro-2-APK
           path: extracted/UltraLauncherStudioPro2/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
